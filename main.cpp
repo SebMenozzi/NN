@@ -18,11 +18,11 @@ const int anwser_data[4] = { 1, 0, 1, 0 };
 int target;
 
 Matrix input_to_hidden_weights(nb_neurons_hidden_layer, 2);
-Matrix input_to_hidden_bias(2, 1);
+Matrix input_to_hidden_bias(nb_neurons_hidden_layer, 1);
 Matrix input_layer(2, 1);
 
 Matrix hidden_to_output_weights(1, nb_neurons_hidden_layer);
-Matrix hidden_to_output_bias(nb_neurons_hidden_layer, 1);
+Matrix hidden_to_output_bias(1, 1);
 Matrix hidden_layer(nb_neurons_hidden_layer, 1);
 
 Matrix output_layer(1, 1);
@@ -80,7 +80,6 @@ void forward_propagate() {
     hidden_layer = applySigmoid(input_to_hidden_weights * input_layer + input_to_hidden_bias);
     output_layer = applySigmoid(hidden_to_output_weights * hidden_layer + hidden_to_output_bias);
 }
-
 /*
 // BACKWARD PROPAGATION
 void back_propagate() {
@@ -117,27 +116,20 @@ void back_propagate() {
         hidden_to_output_bias -= deltab2 * learning_rate;
     }
 }
-*/
+
 void display_result() {
     input_layer.display();
 
     std::cout << "(" << input_layer.getValue(0, 0) << ", " << input_layer.getValue(1, 0) << ") : expected: " << target << " (error:" << output_layer.getValue(0, 0) << ")" << std::endl << std::endl;
 }
+*/
 int main() {
     generate_random_input_to_hidden_weights();
     generate_random_hidden_to_output_weights();
 
-    /*
-    input_to_hidden_weights.display();
-
-    std::cout << std::endl << "-----------" << std::endl << std::endl;
-
-    hidden_to_output_weights.display();
-    */
-
     // train the network
     for (int i = 0; i < epoch; i++) {
-        for (int inputs = 0; inputs < 4; inputs++) {
+        for (int inputs = 0; inputs < 1; inputs++) {
             input_layer.setValue(0, 0, training_data[inputs][0]);
             input_layer.setValue(1, 0, training_data[inputs][1]);
             target = anwser_data[inputs];
