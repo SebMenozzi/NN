@@ -32,12 +32,7 @@ Matrix::Matrix(const Matrix& matrixToCopy)
   this->values = matrixToCopy.getValues();
 }
 
-Matrix::~Matrix()
-{
-
-}
-
-void Matrix::display()
+void Matrix::display() const
 {
 	for(size_t line = 0; line < this->height; line++)
 	{
@@ -82,6 +77,30 @@ void Matrix::add(float n)
       this->values[line][column] += n;
     }
   }
+}
+
+void Matrix::subtract(const Matrix& matrix)
+{
+  size_t newWidth = std::min(this->width, matrix.getWidth());
+  size_t newHeight = std::min(this->height, matrix.getHeight());
+
+  this->values.resize(newHeight);
+
+  for (size_t i = 0; i < this->values.size(); i++)
+  {
+    this->values[i].resize(newWidth);
+  }
+
+  for (size_t line = 0; line < newHeight; line++)
+  {
+    for (size_t column = 0; column < newWidth; column++)
+    {
+      this->values[line][column] -= matrix.getValue(line, column);
+    }
+  }
+
+  this->width = newWidth;
+  this->height = newHeight;
 }
 
 void Matrix::subtract(float n)
@@ -144,7 +163,7 @@ void Matrix::setValue(size_t line, size_t column, float valeur)
   if (column >= this->width || line >= this->height)
   {
     std::stringstream flux;
-    flux << "The case [" << line << "," << column << "] doesn't exist : " << std::endl << "Line : " << this->height << std::endl << "Column : " << this->width << std::endl;
+    flux << "The case [" << line << "," << column << "] doesn't exist : " << std::endl << "Height : " << this->height << std::endl << "Width : " << this->width << std::endl;
     throw flux.str();
   }
   this->values[line][column] = valeur;
@@ -162,6 +181,12 @@ size_t Matrix::getHeight(void) const
 
 float Matrix::getValue(size_t line, size_t column) const
 {
+  if (column >= this->width || line >= this->height)
+  {
+    std::stringstream flux;
+    flux << "The case [" << line << "," << column << "] doesn't exist : " << std::endl << "Height : " << this->height << std::endl << "Width : " << this->width << std::endl;
+    throw flux.str();
+  }
   return this->values[line][column];
 }
 
@@ -186,6 +211,13 @@ Matrix Matrix::operator+(float n) const
 {
   Matrix result(*this);
   result.add(n);
+  return result;
+}
+
+Matrix Matrix::operator-(const Matrix& matrix) const
+{
+  Matrix result(*this);
+  result.subtract(matrix);
   return result;
 }
 
@@ -254,4 +286,46 @@ bool Matrix::operator==(const Matrix& matrix) const
 bool Matrix::operator!=(const Matrix& matrix) const
 {
   return ! this->equal(matrix);
+}
+
+Matrix& Matrix::operator+=(const Matrix& matrix)
+{
+    this->add(matrix);
+    return *this;
+}
+
+Matrix& Matrix::operator+=(float n)
+{
+  this->add(n);
+  return *this;
+}
+
+Matrix& Matrix::operator-=(const Matrix& matrix)
+{
+    this->subtract(matrix);
+    return *this;
+}
+
+Matrix& Matrix::operator-=(float n)
+{
+  this->subtract(n);
+  return *this;
+}
+
+Matrix& Matrix::operator*=(const Matrix& matrix)
+{
+    this->multiply(matrix);
+    return *this;
+}
+
+Matrix& Matrix::operator*=(float n)
+{
+  this->multiply(n);
+  return *this;
+}
+
+Matrix& Matrix::operator/=(float n)
+{
+  this->divide(n);
+  return *this;
 }
