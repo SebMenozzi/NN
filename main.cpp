@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "matrix.h"
+#include "NN.h"
 
 // nombre de neurones en hidden layer
 #define nb_neurons_hidden_layer 3
@@ -18,7 +19,7 @@ const int training_data[4][2] = {
     { 0, 0 } // 0
 };
 // résultat attendu
-const int anwser_data[4] = { 1, 0, 1, 0 };
+const int answer_data[4] = { 1, 0, 1, 0 };
 
 // objectif
 int target;
@@ -135,7 +136,7 @@ void display_result() {
 }
 
 int main() {
-    generate_random_input_to_hidden_weights();
+/*    generate_random_input_to_hidden_weights();
     generate_random_hidden_to_output_weights();
 
     // pour chaque itération (2000)
@@ -147,13 +148,15 @@ int main() {
             // on initialize le second neurone de input layer
             input_layer.setValue(1, 0, training_data[inputs][1]);
             // on initialize la valeur target correspond au résulat attendu par rapport aux neurones de input layer (0 ou 1 pour XOR)
-            target = anwser_data[inputs];
+            target = answer_data[inputs];
 
             forward_propagate();
             back_propagate();
             display_result();
         }
-    }
+    }*/
+    (void) training_data;
+    (void) answer_data;
 
     // TEST
     input_layer.setValue(0, 0, 0.01); // Entree 1
@@ -166,6 +169,21 @@ int main() {
     forward_propagate();
     // Affichage
     std::cout << "Sortie : " << output_layer.getValue(0, 0) << std::endl;
+
+
+    // Voici comment j'aimerais l'utiliser après apprentissage
+    std::vector<size_t> nbNeurones;
+    nbNeurones.push_back(2); // Inputs
+    nbNeurones.push_back(3); // First hidden layer
+    nbNeurones.push_back(1); // Output
+    NN nn(nbNeurones);
+    std::vector<float> inputs;
+    inputs.push_back(0.01); // Input 0
+    inputs.push_back(0.99); // Input 1
+    nn.setInputs(inputs);
+    std::vector<float> outputs = nn.getOutputs();
+    std::cout << "output : " << outputs[0] << std::endl;
+
 
     return 0;
 }
