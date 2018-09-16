@@ -2,19 +2,25 @@
 #include <math.h>
 #include "matrix.h"
 
+// nombre de neurones en hidden layer
 #define nb_neurons_hidden_layer 3
-#define epoch 1
-#define learning_rate 0.8
+// nombre d'itération
+#define epoch 2000
+// capacité d'apprentissage
+#define learning_rate 0.7
 
 // GLOBAL
+// donnée entrante d'input pour XOR
 const int training_data[4][2] = {
-    { 1, 0 },
-    { 1, 1 },
-    { 0, 1 },
-    { 0, 0 }
+    { 1, 0 }, // 1 XOR 1 = 1
+    { 1, 1 }, // 0
+    { 0, 1 }, // 1
+    { 0, 0 } // 0
 };
+// résultat attendu
 const int anwser_data[4] = { 1, 0, 1, 0 };
 
+// objectif
 int target;
 
 Matrix input_to_hidden_weights(nb_neurons_hidden_layer, 2);
@@ -31,12 +37,14 @@ float error_rate; // for debug
 
 // UTILS
 
+// donne un float entre -1 et 1
 double random_between_neg_1_pos_1() {
     int randNumber = rand() % 2; // 0 or 1
     double result = rand() / (RAND_MAX + 1.0); // between 0 and 1
     return (randNumber == 1) ? result : -1 * result;
 }
 
+// met des poids aléatoires de input vers hidden layer
 void generate_random_input_to_hidden_weights() {
     for (size_t row = 0; row < nb_neurons_hidden_layer; row++) {
         for (size_t column = 0; column < 2; column++)
@@ -46,6 +54,7 @@ void generate_random_input_to_hidden_weights() {
     }
 }
 
+// met des poids aléatoires de hidden vers output layer
 void generate_random_hidden_to_output_weights() {
     for (size_t row = 0; row < nb_neurons_hidden_layer; row++)
     {
@@ -65,6 +74,7 @@ float sigmoid_prime(float x)
     return x * (1.0 - x);
 }
 
+// applique la fonction sigmoide pour chaque case d'une matrice
 Matrix applySigmoid(Matrix a) {
   for (size_t column = 0; column < a.getHeight(); column++) {
     for (size_t row = 0; row < a.getWidth(); row++) {
@@ -75,69 +85,87 @@ Matrix applySigmoid(Matrix a) {
 }
 
 // FORWARD PROPAGATION
-
 void forward_propagate() {
     hidden_layer = applySigmoid(input_to_hidden_weights * input_layer + input_to_hidden_bias);
     output_layer = applySigmoid(hidden_to_output_weights * hidden_layer + hidden_to_output_bias);
 }
-/*
 // BACKWARD PROPAGATION
 void back_propagate() {
-    float error = output_layer - target;
+    float error = output_layer.getValue(0, 0) - target;
     error_rate = pow(error, 2);
 
-    for (int i = 0; i < nb_neurons_hidden_layer; i++) {
-        for (int j = 0; j < 2; j++) {
+    for (int row = 0; row < nb_neurons_hidden_layer; row++) {
+        for (int column = 0; column < 2; column++) {
             float deltaw1 = error *
-                            sigmoid_prime(output_layer) *
-                            hidden_to_output_weights[i] *
-                            sigmoid_prime(hidden_layer[i]) *
-                            input_layer[j];
+                            sigmoid_prime(output_layer.getValue(0, 0)) *
+                            hidden_to_output_weights.getValue(0, row) *
+                            sigmoid_prime(hidden_layer.getValue(row, 0)) *
+                            input_layer.getValue(column, 0);
             // new input weights
-            input_to_hidden_weights[i][j] -= deltaw1 * learning_rate;
+            float new_input_to_hidden_weights = input_to_hidden_weights.getValue(row, column) - deltaw1 * learning_rate;
+            input_to_hidden_weights.setValue(row, column, new_input_to_hidden_weights);
         }
 
         float deltaw2 = error *
-                        sigmoid_prime(output_layer) *
-                        hidden_layer[i];
+                        sigmoid_prime(output_layer.getValue(0, 0)) *
+                        hidden_layer.getValue(row, 0);
         // new hidden weights
-        hidden_to_output_weights[i] -= deltaw2 * learning_rate;
+        float new_hidden_to_output_weights = hidden_to_output_weights.getValue(0, row) - deltaw2 * learning_rate;
+        hidden_to_output_weights.setValue(0, row, new_hidden_to_output_weights);
 
         float deltab1 = error *
-                        sigmoid_prime(output_layer) *
-                        hidden_to_output_weights[i] *
-                        sigmoid_prime(hidden_layer[i]);
+                        sigmoid_prime(output_layer.getValue(0, 0)) *
+                        hidden_to_output_weights.getValue(0, row) *
+                        sigmoid_prime(hidden_layer.getValue(row, 0));
         // new input bias
-        input_to_hidden_bias[i] -= deltab1 * learning_rate;
+        float new_input_to_hidden_bias = input_to_hidden_bias.getValue(row, 0) - deltab1 * learning_rate;
+        input_to_hidden_bias.setValue(row, 0, new_input_to_hidden_bias);
 
         float deltab2 = error *
-                        sigmoid_prime(output_layer);
+                        sigmoid_prime(output_layer.getValue(0, 0));
+
         // new hidden bias
-        hidden_to_output_bias -= deltab2 * learning_rate;
+        float new_hidden_to_output_bias = hidden_to_output_bias.getValue(0, 0) - deltab2 * learning_rate;
+        hidden_to_output_bias.setValue(0, 0, new_hidden_to_output_bias);
     }
 }
 
 void display_result() {
-    input_layer.display();
-
-    std::cout << "(" << input_layer.getValue(0, 0) << ", " << input_layer.getValue(1, 0) << ") : expected: " << target << " (error:" << output_layer.getValue(0, 0) << ")" << std::endl << std::endl;
+    std::cout << "(" << input_layer.getValue(0, 0) << ", " << input_layer.getValue(1, 0) << ") : expected: " << target << " (error:" << output_layer.getValue(0, 0) << ")" << std::endl;
 }
-*/
+
 int main() {
     generate_random_input_to_hidden_weights();
     generate_random_hidden_to_output_weights();
 
-    // train the network
+    // pour chaque itération (2000)
     for (int i = 0; i < epoch; i++) {
-        for (int inputs = 0; inputs < 1; inputs++) {
+        // pour chaque données à apprendre ( (0, 0) , (1, 0) , (0, 1) , (1, 1) pour XOR)
+        for (int inputs = 0; inputs < 4; inputs++) {
+            // on initialize le premier neurone de input layer
             input_layer.setValue(0, 0, training_data[inputs][0]);
+            // on initialize le second neurone de input layer
             input_layer.setValue(1, 0, training_data[inputs][1]);
+            // on initialize la valeur target correspond au résulat attendu par rapport aux neurones de input layer (0 ou 1 pour XOR)
             target = anwser_data[inputs];
 
             forward_propagate();
-            //back_propagate();
-            //display_result();
+            back_propagate();
+            display_result();
         }
     }
+
+    // TEST
+    input_layer.setValue(0, 0, 0.01); // Entree 1
+    input_layer.setValue(1, 0, 0.99); // Entree 2
+    // Calcule
+    forward_propagate();
+    // Affichage
+    std::cout << "Sortie : " << output_layer.getValue(0, 0) << std::endl;
+    // Calcule
+    forward_propagate();
+    // Affichage
+    std::cout << "Sortie : " << output_layer.getValue(0, 0) << std::endl;
+
     return 0;
 }
